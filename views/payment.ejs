@@ -11,7 +11,7 @@
         var params = {
             amount: document.getElementById("order-amt").value,
             currency: "INR",
-            receipt: "wthcoding001",//can put any unique string
+            receipt: "Customcoding001",//can put any unique string
             payment_capture: '1'//automatic payment capture method
         };
         var xmlHttp = new XMLHttpRequest();//it will recieve the response from the backend and update the dom without rerendring the page
@@ -40,8 +40,8 @@
         var options = {
             "key": "<%= key %>",
             "currency": "INR",
-            "name": "WTH Coding",
-            "description": "WtH Coding Transaction",
+            "name": "Custom Name",
+            "description": "Custom desc Transaction",
             "order_id": document.getElementById("rzp-text").value,
             "handler": function(response) {//once we succesfully submit the checkout form next steps are decided by handler function
                 document.getElementById('order-pay-id').value = response.razorpay_payment_id;

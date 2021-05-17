@@ -60,53 +60,46 @@ app.get("/Razorpayments", (req, res) => {
   //STRIPE
   
 
+  const stripe = require('stripe')('sk_test_51Ig7NWSFN78cA4x1dAhsPy9lI5UGAktcI1e6BxCitpbixg0CBSzV0GaCdbnkLoeFdFsEqVSomjWnEILDF1NGeDHv00KPZ4bpgy');
+ 
+  //app.use(express.static('.')); //serving static file , app.use(express.static('folder')) 
 
-var Publishable_Key = 'pk_test_51Ig7NWSFN78cA4x1nCeIU9HLLIBGth1p3Bnk7Lq2ngxJIPUFsX1jSPPmodeyCSL00VDDEVdwsdcDCrFGlbEkBrkp00YQFJpQeS'
-var Secret_Key = 'sk_test_51Ig7NWSFN78cA4x1dAhsPy9lI5UGAktcI1e6BxCitpbixg0CBSzV0GaCdbnkLoeFdFsEqVSomjWnEILDF1NGeDHv00KPZ4bpgy'
-
-const stripe = require('stripe')(Secret_Key) 
-
-
-
-app.get('/Stripe', function(req, res){ 
-    res.render('Home', { 
-    key: Publishable_Key 
-    }) 
-}) 
-
-app.post('/payment', function(req, res){ 
-    console.log(req.body);
-    // Moreover you can take more details from user 
-    // like Address, Name, etc from form 
-    stripe.customers.create({ 
-        
-        email: req.body.stripeEmail, 
-        source: req.body.stripeToken, 
-        name: 'Siddhant Grover', 
-        address: { 
-            line1: 'TC 9/4 Old MES colony', 
-            postal_code: '110092', 
-            city: 'New Delhi', 
-            state: 'Delhi', 
-            country: 'India', 
-        } 
-    }) 
-    .then((customer) => { 
-
-        return stripe.charges.create({ 
-            amount: 7000,    // Charing Rs 25 
-            description: 'Web Development Product', 
-            currency: 'INR', 
-            customer: customer.id 
-        }); 
-    }) 
-    .then((charge) => { 
-        res.send("Success") // If no error occurs 
-    }) 
-    .catch((err) => { 
-        res.send(err)    // If some error occurs 
-    }); 
-}) 
+  app.get('/Stripe', function(req, res){ 
+    res.render('checkout') 
+})
+  
+  const YOUR_DOMAIN = 'http://localhost:3000';
+  
+  app.post('/create-checkout-session', async (req, res) => {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Awesome Product',
+              images: ['https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/rainbow-rose-michelle-wittensoldner.jpg'],
+            },
+            unit_amount: 2000,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${YOUR_DOMAIN}/stripe/success`,
+      cancel_url: `${YOUR_DOMAIN}/stripe/cancel`,
+    });
+  
+    res.json({ id: session.id });
+  });
+  
+  app.get('/stripe/cancel', function(req, res){ 
+    res.render('cancel') 
+})
+app.get('/stripe/success', function(req, res){ 
+  res.render('success') 
+})
 
 app.listen("3000", () => {
   console.log("server started");
