@@ -94,7 +94,90 @@ app.get("/Razorpayments", (req, res) => {
     res.json({ id: session.id });
   });
   
-  app.get('/stripe/cancel', function(req, res){ 
+  ///PAYPAL
+  app.get('/paypal', (req, res) => res.render('paypal'));
+
+  const paypal = require('paypal-rest-sdk');
+
+  paypal.configure({
+    'mode': 'sandbox', //sandbox or live
+    'client_id': 'Adxzsj7gA3qqtUqWO493AbfVTnkTQeBWWvTxgnKBxTksPFdU1RWf1UjaDkB_o66d5kg0wdMRzY6K7zJ1',
+    'client_secret': 'EDvZKSak9gRm-uRohkHsN_SrzmGXXwgChjjltKk-NN2Ba4za9hj7fqf5hE7TTk3weYW5tRHBJpKRLuo2'
+  });
+  
+  app.post('/pay', (req, res) => {
+    const create_payment_json = {
+      "intent": "sale",
+      "payer": {
+          "payment_method": "paypal"
+      },
+      "redirect_urls": {
+          "return_url": `${YOUR_DOMAIN}/paypal/success`,
+          "cancel_url": `${YOUR_DOMAIN}/paypal/cancel`
+      },
+      "transactions": [{
+          "item_list": {
+              "items": [{
+                  "name": "Red Sox Hat",
+                  "sku": "001",
+                  "price": "25.00",
+                  "currency": "USD",
+                  "quantity": 1
+              }]
+          },
+          "amount": {
+              "currency": "USD",
+              "total": "25.00"
+          },
+          "description": "Hat for the best team ever"
+      }]
+  };
+  
+  paypal.payment.create(create_payment_json, function (error, payment) {
+    if (error) {
+        throw error;
+    } else {
+        for(let i = 0;i < payment.links.length;i++){
+          if(payment.links[i].rel === 'approval_url'){
+            res.redirect(payment.links[i].href);
+          }
+        }
+    }
+  });
+  
+  });
+  
+  app.get('/paypal/success', (req, res) => {
+    const payerId = req.query.PayerID;
+    const paymentId = req.query.paymentId;
+  
+    const execute_payment_json = {
+      "payer_id": payerId,
+      "transactions": [{
+          "amount": {
+              "currency": "USD",
+              "total": "25.00"
+          }
+      }]
+    };
+  
+    paypal.payment.execute(paymentId, execute_payment_json, function (error, payment) {
+      if (error) {
+          console.log(error.response);
+          throw error;
+      } else {
+          console.log(JSON.stringify(payment));
+          res.send('Success');
+      }
+  });
+  });
+  
+  app.get('/paypal/cancel', (req, res) => res.send('Cancelled'));
+
+ 
+
+
+app.get('/stripe/cancel', function(req, res){ 
     res.render('cancel') 
 })
 app.get('/stripe/success', function(req, res){ 
@@ -104,3 +187,5 @@ app.get('/stripe/success', function(req, res){
 app.listen("3000", () => {
   console.log("server started");
 });
+
+
