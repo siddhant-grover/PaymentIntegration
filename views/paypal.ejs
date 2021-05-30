@@ -9,8 +9,29 @@
 <body>
   <h1>Boston Red Sox Hat</h1>
   <h2>Buy For 25 USD </h2>
-  <form action="/pay" method="post">
-    <input type="submit" value="Buy">
-  </form>
+  
+    <input type="submit" value="Buy" onclick="f()"/>
+
+  <script>
+    function f(){
+      fetch('/pay',{
+        method:'POST',
+        headers: {
+            "Content-Type": "application/json"
+          }
+      }
+      )
+      .then((res) => {
+          return res.json()
+      })
+      .then(data=>{
+        //console.log(data)
+        window.location = data.forwardLink
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+    }
+  </script>
 </body>
 </html>
